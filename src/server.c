@@ -18,6 +18,22 @@ int main(int argc, char** argv){
 
     bool running = true;
 
+    //Set up route map
+    tree_map_t* route_map = new_tree_map((void*)"/", (void*)"html/index.html", &compstring);
+    insert_tree_map(route_map, (void*)"/style.css", (void*)"html/style.css");
+    printf("Routes:\n");
+    print_tree_map(route_map, "{%s: %s}");
+    printf("\n");
+
+    //Set up content type map
+    tree_map_t* content_type_map = new_tree_map((void*)"/", (void*)"text/html", &compstring);
+    insert_tree_map(content_type_map, (void*)"/style.css", (void*)"textcss");
+    printf("Content types:\n");
+    print_tree_map(content_type_map, "{%s: %s}");
+    printf("\n");
+
+    
+    //Set up file descriptors, socket adress, and buffers
     int listen_fd, connection_fd, n;
     struct sockaddr_in server_address;
     uint8_t send_buff[MAX_LINE+1];
@@ -64,10 +80,12 @@ int main(int argc, char** argv){
         printf("Wating for a connection on port %d\n", SERVER_PORT);
         connection_fd = accept(listen_fd, (struct sockaddr*)NULL, NULL);
         
+        fprintf(stdout, "\nReceived request:\n");
+
         //Read data from connection
         memset(receive_buff, 0, MAX_LINE);
         while((n = read(connection_fd, receive_buff, MAX_LINE-1)) > 0){
-            fprintf(stdout, "\nReceived request:\n%s", receive_buff);
+            fprintf(stdout, "%s", receive_buff);
 
             //Bad way of finding end of data
             if(receive_buff[n-1] == '\n')
@@ -81,11 +99,28 @@ int main(int argc, char** argv){
             exit(1);
         }
 
-        
- 
+        //Extract method and url
+        char method[8] = {0};
+        char url[256] = {0};
+        int i = 0;
+        int j = 0;
+        char c;
+        while((c = receive_buff[i++]) != (char)' ')
+            method[j++] = c;
+        j = 0;
+        while((c = receive_buff[i++]) != (char)' ')
+            url[j++] = c;
 
-        //Create response
-        char* resp = generate_response(200, "OK", "text/html", "html/index.html");
+        
+        //Create response based on url
+        char* resp;
+        if(contains_tree_map(route_map, url)){
+            resp = generate_response(200, "OK", get_tree_map(content_type_map, url), get_tree_map(route_map, url));
+        } else {
+            //Default to index page for now
+            resp = generate_response(200, "OK", "text/html", "html/index.html");
+        }
+            
         printf("Sending response:\n%s\n\n", resp);
         snprintf((char*)send_buff, sizeof send_buff, resp);
         free(resp);

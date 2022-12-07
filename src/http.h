@@ -6,6 +6,6 @@
 
 
 char* generate_response(int status_code, const char* reason_phrase, const char* content_type, const char* filepath);
-char* load_html(const char* filepath);
+char* load_file(const char* filepath);
 
 #endif

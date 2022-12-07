@@ -30,20 +30,20 @@ char* generate_response(int status_code, const char* reason_phrase, const char* 
     strncat(resp, "\r\n", 3);
 
     //Message body
-    char* body = load_html(filepath);
+    char* body = load_file(filepath);
     strncat(resp, body, MAX_BODY);
     free(body);
 
     return resp;
 }
 
-char* load_html(const char* filepath){
+char* load_file(const char* filepath){
     char* body = calloc(MAX_BODY, sizeof(char));
     long length;
     FILE* f = fopen(filepath, "rb");
 
     if(f == NULL){
-        fprintf(stderr, "Error when reading html file!\n");
+        fprintf(stderr, "Error when reading file at %s\n", filepath);
     }
 
     if(f){
