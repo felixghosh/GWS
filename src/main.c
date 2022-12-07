@@ -11,7 +11,7 @@
 
 #define MAX_LINE 4096
 #define MAX_CON 10
-#define SERVER_PORT 18000
+#define SERVER_PORT 80
 
 int main(int argc, char** argv){
 
@@ -42,7 +42,10 @@ int main(int argc, char** argv){
 
     //Bind listening socket
     if((bind(listen_fd, (struct sockaddr*)&server_address, sizeof server_address)) < 0){
-        fprintf(stderr, "Bind error!\n");
+        if(SERVER_PORT == 80)
+            fprintf(stderr, "Error: Program needs to be run with elevated privileges to listen on port 80!\n");
+        else
+            fprintf(stderr, "Bind error!\n");
         exit(1);
     }
 
@@ -78,7 +81,7 @@ int main(int argc, char** argv){
         }
 
         //Create response
-        snprintf((char*)send_buff, sizeof send_buff, "HTTP/1.0 200 OK\r\n\r\nHello");
+        snprintf((char*)send_buff, sizeof send_buff, "HTTP/1.0 200 OK\r\n\r\n<h1>Felix Ghosh</h1><br><p>Page under construction</p>");
 
         //Send response
         write(connection_fd, (char*)send_buff, strlen((char*)send_buff));
