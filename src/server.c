@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 
 #include "GCL.h"
+#include "http.h"
 
 #define MAX_LINE 4096
 #define MAX_CON 10
@@ -66,7 +67,7 @@ int main(int argc, char** argv){
         //Read data from connection
         memset(receive_buff, 0, MAX_LINE);
         while((n = read(connection_fd, receive_buff, MAX_LINE-1)) > 0){
-            fprintf(stdout, "\n%s", receive_buff);
+            fprintf(stdout, "\nReceived request:\n%s", receive_buff);
 
             //Bad way of finding end of data
             if(receive_buff[n-1] == '\n')
@@ -80,8 +81,14 @@ int main(int argc, char** argv){
             exit(1);
         }
 
+        
+ 
+
         //Create response
-        snprintf((char*)send_buff, sizeof send_buff, "HTTP/1.0 200 OK\r\n\r\n<h1>Felix Ghosh</h1><br><p>Page under construction</p>");
+        char* resp = generate_response(200, "OK", "text/html", "html/index.html");
+        printf("Sending response:\n%s\n\n", resp);
+        snprintf((char*)send_buff, sizeof send_buff, resp);
+        free(resp);
 
         //Send response
         write(connection_fd, (char*)send_buff, strlen((char*)send_buff));
